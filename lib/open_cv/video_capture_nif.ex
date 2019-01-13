@@ -13,7 +13,12 @@ defmodule OpenCv.VideoCaptureNif do
   end
 
   def start(), do: :erlang.nif_error("erl_video_capture not loaded")
-  def open(_, _, _, _), do: :erlang.nif_error("erl_video_capture not loaded")
-  def close(_, _, _), do: :erlang.nif_error("erl_video_capture not loaded")
-  def get_frame(_, _, _, _rotation), do: :erlang.nif_error("erl_video_capture not loaded")
+  def open(_conn, _ref, _pid, _filename), do: :erlang.nif_error("erl_video_capture not loaded")
+  def close(_conn, _ref, _pid), do: :erlang.nif_error("erl_video_capture not loaded")
+  def is_opened(_conn, _ref, _pid), do: :erlang.nif_error("erl_video_capture not loaded")
+  def grab(_conn, _ref, _pid), do: :erlang.nif_error("erl_video_capture not loaded")
+  def retreive(_conn, _ref, _pid, _flag), do: :erlang.nif_error("erl_video_capture not loaded")
+  def read(_conn, _ref, _pid), do: :erlang.nif_error("erl_video_capture not loaded")
+  def get(_conn, _ref, _pid, _propid), do: :erlang.nif_error("erl_video_capture not loaded")
+  def set(_conn, _ref, _pid, _propid_value), do: :erlang.nif_error("erl_video_capture not loaded")
 end

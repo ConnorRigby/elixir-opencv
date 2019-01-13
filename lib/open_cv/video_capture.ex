@@ -3,6 +3,7 @@ defmodule OpenCv.VideoCapture do
 
   @default_timeout 5000
   alias OpenCv.VideoCaptureNif
+
   def open(devpath, timeout \\ @default_timeout) do
     {:ok, conn} = VideoCaptureNif.start()
     ref = make_ref()
@@ -20,9 +21,39 @@ defmodule OpenCv.VideoCapture do
     receive_answer(ref, timeout)
   end
 
-  def get_frame({__MODULE__, _ref, conn}, rotation \\ 0.0, timeout \\ @default_timeout) do
+  def is_opened({__MODULE__, _ref, conn}, timeout \\ @default_timeout) do
     ref = make_ref()
-    :ok = VideoCaptureNif.get_frame(conn, ref, self(), rotation)
+    :ok = VideoCaptureNif.is_opened(conn, ref, self())
+    receive_answer(ref, timeout)
+  end
+
+  def grab({__MODULE__, _ref, conn}, timeout \\ @default_timeout) do
+    ref = make_ref()
+    :ok = VideoCaptureNif.grab(conn, ref, self())
+    receive_answer(ref, timeout)
+  end
+
+  def retreive({__MODULE__, _ref, conn}, flag \\ 0, timeout \\ @default_timeout) do
+    ref = make_ref()
+    :ok = VideoCaptureNif.retreive(conn, ref, self(), flag)
+    receive_answer(ref, timeout)
+  end
+
+  def read({__MODULE__, _ref, conn}, timeout \\ @default_timeout) do
+    ref = make_ref()
+    :ok = VideoCaptureNif.read(conn, ref, self())
+    receive_answer(ref, timeout)
+  end
+
+  def get({__MODULE__, _ref, conn}, propid, timeout \\ @default_timeout) do
+    ref = make_ref()
+    :ok = VideoCaptureNif.get(conn, ref, self(), propid)
+    receive_answer(ref, timeout)
+  end
+
+  def set({__MODULE__, _ref, conn}, propid, propval, timeout \\ @default_timeout) do
+    ref = make_ref()
+    :ok = VideoCaptureNif.set(conn, ref, self(), {propid, propval})
     receive_answer(ref, timeout)
   end
 
