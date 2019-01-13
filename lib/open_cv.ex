@@ -1,0 +1,2 @@
+defmodule OpenCv do
+end
