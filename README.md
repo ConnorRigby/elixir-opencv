@@ -12,21 +12,16 @@ works currently.
 Capturing a jpeg encoded frame frame can be done by:
 
 ```elixir
-iex()> {:ok, cap} = OpenCv.VideoCapture.open('/dev/video0')
+Interactive Elixir (1.7.3) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> {:ok, cap} = OpenCv.VideoCapture.open('/dev/video0')                      
 {:ok,
- {OpenCv.VideoCapture, #Reference<0.3761111453.805568514.61221>,
-  #Reference<0.3761111453.805699586.61219>}}
-iex()> frame = OpenCv.VideoCapture.open(cap)
-<<255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 255,
-  219, 0, 67, 0, 6, 4, 5, 6, 5, 4, 6, 6, 5, 6, 7, 7, 6, 8, 10, 16, 10, 10, 9, 9,
-  10, 20, 14, 15, 12, ...>>
-```
-
-You can preview the frame by:
-
-```elixir
-iex()> File.write("/tmp/frame.jpg", frame)
+ {OpenCv.VideoCapture, #Reference<0.2545925687.771227649.125639>,
+  #Reference<0.2545925687.771358721.125637>}}
+iex(2)> {:ok, frame} = OpenCv.VideoCapture.read(cap)                              
+{:ok, #Reference<0.2545925687.771358720.123753>}
+iex(3)> File.write!("img.jpg", OpenCv.VideoCaptureNif.imencode(frame, '.jpg', []))
 :ok
+iex(4)> 
 ```
 
 ## Building

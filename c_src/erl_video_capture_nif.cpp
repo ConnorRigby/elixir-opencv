@@ -19,6 +19,7 @@
 #include <stdio.h>
 
 #include "erl_nif.h"
+#include "erl_cv_util.hpp"
 #include "queue.hpp"
 
 #include "opencv2/opencv.hpp"
@@ -67,47 +68,6 @@ typedef struct {
 static ERL_NIF_TERM atom_erl_video_capture;
 
 static ERL_NIF_TERM push_command(ErlNifEnv *env, erl_video_capture_connection *conn, erl_video_capture_command *cmd);
-
-static ERL_NIF_TERM
-make_atom(ErlNifEnv *env, const char *atom_name)
-{
-    ERL_NIF_TERM atom;
-
-    if(enif_make_existing_atom(env, atom_name, &atom, ERL_NIF_LATIN1))
-	   return atom;
-
-    return enif_make_atom(env, atom_name);
-}
-
-static ERL_NIF_TERM
-make_ok_tuple(ErlNifEnv *env, ERL_NIF_TERM value)
-{
-    return enif_make_tuple2(env, make_atom(env, "ok"), value);
-}
-
-static ERL_NIF_TERM
-make_error_tuple(ErlNifEnv *env, const char *reason)
-{
-    return enif_make_tuple2(env, make_atom(env, "error"), make_atom(env, reason));
-}
-
-static ERL_NIF_TERM
-make_binary(ErlNifEnv *env, const void *bytes, unsigned int size)
-{
-    ErlNifBinary blob;
-    ERL_NIF_TERM term;
-
-    if(!enif_alloc_binary(size, &blob)) {
-	    /* TODO: fix this */
-	    return make_atom(env, "error");
-    }
-
-    memcpy(blob.data, bytes, size);
-    term = enif_make_binary(env, &blob);
-    enif_release_binary(&blob);
-
-    return term;
-}
 
 static void
 command_destroy(void *obj)
@@ -250,15 +210,14 @@ do_read(ErlNifEnv *env, erl_video_capture_connection *conn)
         return make_error_tuple(env, "not_open");
 
     cv::VideoCapture cap = *conn->cap;
-    cv::Mat frame = *emat->mat;
 
     if(!cap.isOpened())
         return make_error_tuple(env, "not_open");
 
-    if(!cap.read(frame))
+    if(!cap.read(*emat->mat))
         return make_atom(env, "false");
 
-    if(frame.empty()) {
+    if(emat->mat->empty()) {
         ret = make_atom(env, "nil");
     } else {
         ret = enif_make_resource(env, emat);
@@ -609,6 +568,49 @@ erl_video_capture_get(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     return push_command(env, conn, cmd);
 }
 
+static ERL_NIF_TERM
+erl_cv_imencode(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+{
+    cv::Mat inFrame;
+    erl_mat *inemat;
+
+    int strSize;
+    unsigned int listLength;
+
+    if(!enif_get_resource(env, argv[0], erl_mat_type, (void **) &inemat))
+        return enif_make_badarg(env);
+
+    if(!enif_get_list_length(env, argv[1], &listLength))
+        return make_error_tuple(env, "invalid_string");
+
+    char ext[listLength+1];
+    strSize = enif_get_string(env, argv[1], ext, listLength+1, ERL_NIF_LATIN1);
+
+    if(!enif_get_list_length(env, argv[2], &listLength))
+        return make_error_tuple(env, "invalid_params");
+    // std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 80};
+    std::vector<int> params;
+    ERL_NIF_TERM head;
+    ERL_NIF_TERM tail;
+    for(int i = 0; i<listLength; i++) {
+        int val;
+        if(!enif_get_list_cell(env, argv[2], &head, &tail))
+            return make_error_tuple(env, "invalid_params");
+        if(!enif_get_int(env, head, &val))
+            return make_error_tuple(env, "invalid_param_value");
+        params.push_back(val);
+    }
+
+
+    if(strSize <= 0)
+        return make_error_tuple(env, "invalid_filename");
+
+    //buffer for storing frame
+    std::vector<uchar> buff;
+    cv::imencode(ext, *inemat->mat, buff, params);
+    return make_binary(env, buff.data(), buff.size());
+}
+
 /**
  * Sets a property in the VideoCapture. 
  * https://docs.opencv.org/3.4.5/d8/dfe/classcv_1_1VideoCapture.html#a8c6d8c2d37505b5ca61ffd4bb54e9a7c
@@ -696,7 +698,7 @@ on_load(ErlNifEnv* env, void** priv, ERL_NIF_TERM info)
                 destruct_erl_mat, ERL_NIF_RT_CREATE, NULL);
     if(!rt)
         return -1;
-    erl_mat_type = rt;    
+    erl_mat_type = rt;
 
     atom_erl_video_capture = make_atom(env, "erl_video_capture");
     return 0;
@@ -722,5 +724,7 @@ static ErlNifFunc nif_funcs[] = {
     {"read", 3, erl_video_capture_read},
     {"get", 4, erl_video_capture_get},
     {"set", 4, erl_video_capture_set},
+    {"imencode", 3, erl_cv_imencode}
+
 };
 ERL_NIF_INIT(Elixir.OpenCv.VideoCaptureNif, nif_funcs, on_load, on_reload, on_upgrade, NULL);

@@ -9,25 +9,21 @@ typedef struct {
 } erl_mat;
 
 static ERL_NIF_TERM
-emat_new(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+erl_cv_imencode(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
+    cv::Mat inFrame, outFrame;
     erl_mat *inemat;
-    erl_mat *outemat;
-    ERL_NIF_TERM ret;
 
-    outemat = (erl_mat*) (erl_mat*) enif_alloc_resource(erl_mat_type, sizeof(erl_mat));
-    if(!outemat)
-        return make_error_tuple(env, "no_memory");
+    if(!enif_get_resource(env, argv[0], erl_mat_type, (void **) &inemat))
+      return enif_make_badarg(env);
 
-    if(enif_get_resource(env, argv[0], erl_mat_type, (void **) &inemat)) {
-      cv::Mat inMat = *inemat->mat;
-      outemat->mat = new cv::Mat(inMat);
-    } else {
-      outemat->mat = new cv::Mat();
-    }
-    ret = enif_make_resource(env, outemat);
-    enif_release_resource(outemat);
-    return make_ok_tuple(env, ret);
+    inFrame = *inemat->mat;
+    
+    //buffer for storing frame
+    std::vector<uchar> buff;
+    std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 80};
+    cv::imencode(".jpg", outFrame, buff, params);
+    return make_binary(env, buff.data(), buff.size());
 }
 
 static void
@@ -46,7 +42,7 @@ static int
 on_load(ErlNifEnv* env, void** priv, ERL_NIF_TERM info)
 {
     ErlNifResourceType *rt;
-    rt = enif_open_resource_type(env, "erl_mat_nif", "erl_mat_type",
+    rt = enif_open_resource_type(env, "erl_cv_nif", "erl_mat_type",
                 destruct_erl_mat, ERL_NIF_RT_CREATE, NULL);
     if(!rt)
         return -1;
@@ -65,7 +61,7 @@ static int on_upgrade(ErlNifEnv* env, void** priv, void** old_priv_data, ERL_NIF
 }
 
 static ErlNifFunc nif_funcs[] = {
-  {"new", 1, emat_new}
+  {"imencode", 3, erl_cv_imencode}
 };
 
-ERL_NIF_INIT(Elixir.OpenCv.MatNif, nif_funcs, on_load, on_reload, on_upgrade, NULL);
+ERL_NIF_INIT(Elixir.OpenCv.CvNif, nif_funcs, on_load, on_reload, on_upgrade, NULL);

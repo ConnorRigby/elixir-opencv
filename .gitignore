@@ -24,3 +24,4 @@ opencv-*.tar
 
 /priv
 *.so
+/.vscode

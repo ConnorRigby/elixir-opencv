@@ -15,16 +15,19 @@ endif
 .DEFAULT_GOAL: all
 .PHONY: all clean
 
-all: priv priv/erl_video_capture_nif.so priv/erl_mat_nif.so
+all: priv priv/erl_video_capture_nif.so priv/erl_mat_nif.so priv/erl_cv_nif.so
 
 priv:
 	mkdir -p priv
 
-priv/erl_video_capture_nif.so: c_src/erl_video_capture_nif.cpp c_src/queue.cpp
-	$(CXX) $(CFLAGS) $(LDFLAGS) c_src/erl_video_capture_nif.cpp c_src/queue.cpp -o priv/erl_video_capture_nif.so
+priv/erl_video_capture_nif.so: c_src/erl_cv_util.cpp c_src/erl_video_capture_nif.cpp c_src/queue.cpp
+	$(CXX) $(CFLAGS) $(LDFLAGS) c_src/erl_cv_util.cpp c_src/erl_video_capture_nif.cpp  c_src/queue.cpp -o priv/erl_video_capture_nif.so
 
-priv/erl_mat_nif.so: c_src/erl_mat_nif.cpp
-	$(CXX) $(CFLAGS) $(LDFLAGS) c_src/erl_mat_nif.cpp -o priv/erl_mat_nif.so
+priv/erl_mat_nif.so: c_src/erl_cv_util.cpp c_src/erl_mat_nif.cpp
+	$(CXX) $(CFLAGS) $(LDFLAGS) c_src/erl_cv_util.cpp c_src/erl_mat_nif.cpp -o priv/erl_mat_nif.so
+
+priv/erl_cv_nif.so: c_src/erl_cv_util.cpp c_src/erl_cv_nif.cpp
+	$(CXX) $(CFLAGS) $(LDFLAGS) c_src/erl_cv_util.cpp c_src/erl_cv_nif.cpp -o priv/erl_cv_nif.so
 
 clean:
-	$(RM) priv/erl_video_capture_nif.so
+	$(RM) priv/erl_video_capture_nif.so priv/erl_mat_nif.so
