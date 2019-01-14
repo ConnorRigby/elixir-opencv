@@ -1,5 +1,6 @@
 defmodule OpenCv.Util do
   require Logger
+
   def receive_answer(ref, timeout) do
     start = :os.timestamp()
 

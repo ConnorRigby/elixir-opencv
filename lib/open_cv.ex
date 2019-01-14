@@ -3,7 +3,7 @@ defmodule OpenCv do
 
   @default_timeout 5000
 
-  def new do 
+  def new do
     :erl_cv_nif.start()
   end
 
