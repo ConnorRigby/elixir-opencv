@@ -13,15 +13,21 @@ Capturing a jpeg encoded frame frame can be done by:
 
 ```elixir
 Interactive Elixir (1.7.3) - press Ctrl+C to exit (type h() ENTER for help)
-iex(1)> {:ok, cap} = OpenCv.VideoCapture.open('/dev/video0')                      
-{:ok,
- {OpenCv.VideoCapture, #Reference<0.2545925687.771227649.125639>,
-  #Reference<0.2545925687.771358721.125637>}}
-iex(2)> {:ok, frame} = OpenCv.VideoCapture.read(cap)                              
-{:ok, #Reference<0.2545925687.771358720.123753>}
-iex(3)> File.write!("img.jpg", OpenCv.VideoCaptureNif.imencode(frame, '.jpg', []))
+iex(1)> {:ok, conn} = OpenCv.new()
+{:ok, #Reference<0.1511271170.1095630852.139975>}
+iex(2)> {:ok, cap} = OpenCv.VideoCapture.open(conn, '/dev/video0')
+{:ok, #Reference<0.1511271170.1095630848.138924>}
+iex(3)> true = OpenCv.VideoCapture.is_opened(conn, cap)
+true
+iex(4)> {:ok, frame} = OpenCv.VideoCapture.read(conn, cap)
+{:ok, #Reference<0.1511271170.1095630848.138925>}
+iex(5)> jpg = OpenCv.imencode(conn, frame, '.jpg', [])
+<<255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 255,
+  219, 0, 67, 0, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2, 2, 4, 3, 2, 2, 2, 2,
+  5, 4, 4, 3, ...>>
+iex(6)> File.write("img.jpg", jpg)
 :ok
-iex(4)> 
+
 ```
 
 ## Building
