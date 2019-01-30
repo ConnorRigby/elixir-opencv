@@ -32,13 +32,24 @@ iex(6)> File.write("img.jpg", jpg)
 
 ## Building
 
-This currently supports opencv3 and opencv4. It may support opencv2, but I have 
-not tested. Nerves builds are currently supported given you have a 
-system that has opencv installed. [this](https://github.com/FarmBot-Labs/farmbot_system_rpi3) 
+This currently supports opencv3 and opencv4. It may support opencv2, but I have
+not tested. Nerves builds are currently supported given you have a
+system that has opencv installed. [this](https://github.com/FarmBot-Labs/farmbot_system_rpi3)
 system has opencv 3 installed. I've only tested build on linux, and it is likely
 that paths for the Makefile may be wrong.
 
 ## Installation
+
+To pull in this package directly from GitHub, amend your list of
+dependencies in `mix.exs` as follows:
+
+```elixir
+def deps do
+  [
+    {:open_cv, github: "ConnorRigby/elixir-opencv", branch: "master"}
+  ]
+end
+```
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 by adding `open_cv` to your list of dependencies in `mix.exs`:
@@ -54,4 +65,3 @@ end
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/open_cv](https://hexdocs.pm/open_cv).
-
